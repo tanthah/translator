@@ -7,16 +7,63 @@
     android:background="@android:color/black"
     tools:context=".ui.camera.CameraFragment">
 
-    <!-- Camera Preview -->
-    <androidx.camera.view.PreviewView
-        android:id="@+id/preview_view"
+    <!-- Camera Mode Layout -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_camera_mode"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:scaleType="fillCenter" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- Camera Preview -->
+        <androidx.camera.view.PreviewView
+            android:id="@+id/preview_view"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:scaleType="fillCenter" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Image Mode Layout -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_image_mode"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- Image Preview -->
+        <ImageView
+            android:id="@+id/image_preview"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:scaleType="matrix"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Crop Overlay -->
+        <com.example.translator.ui.camera.CropOverlayView
+            android:id="@+id/crop_overlay"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Language Selection Overlay at Top -->
     <LinearLayout
@@ -27,6 +74,7 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:layout_marginTop="40dp"
+        android:layout_marginHorizontal="16dp"
         android:padding="12dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -96,7 +144,7 @@
         android:background="@drawable/bg_overlay"
         android:padding="16dp"
         android:scrollbars="vertical"
-        app:layout_constraintBottom_toTopOf="@id/btn_capture"
+        app:layout_constraintBottom_toTopOf="@id/layout_action_buttons"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_max="200dp"
         app:layout_constraintStart_toStartOf="parent"
@@ -169,19 +217,85 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible" />
 
-    <!-- Capture Button -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/btn_capture"
-        android:layout_width="wrap_content"
+    <!-- Action Buttons Layout -->
+    <LinearLayout
+        android:id="@+id/layout_action_buttons"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
-        android:contentDescription="@string/camera_capture_description"
-        android:src="@drawable/ic_camera"
-        app:backgroundTint="@color/primary_color"
-        app:fabSize="normal"
+        android:gravity="center"
+        android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:tint="@android:color/white" />
+        app:layout_constraintStart_toStartOf="parent">
+
+        <!-- Gallery Button -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btn_gallery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="24dp"
+            android:contentDescription="Open Gallery"
+            android:src="@drawable/ic_image"
+            app:backgroundTint="@color/accent_color"
+            app:fabSize="normal"
+            app:tint="@android:color/white" />
+
+        <!-- Capture Button -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btn_capture"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/camera_capture_description"
+            android:src="@drawable/ic_camera"
+            app:backgroundTint="@color/primary_color"
+            app:fabSize="normal"
+            app:tint="@android:color/white" />
+
+        <!-- Confirm Crop Button (hidden by default) -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btn_confirm_crop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:contentDescription="Confirm Crop"
+            android:src="@drawable/ic_check"
+            android:visibility="gone"
+            app:backgroundTint="@color/success"
+            app:fabSize="normal"
+            app:tint="@android:color/white" />
+
+        <!-- Retake Button (hidden by default) -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btn_retake"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:contentDescription="Retake Photo"
+            android:src="@drawable/ic_refresh"
+            android:visibility="gone"
+            app:backgroundTint="@color/warning"
+            app:fabSize="normal"
+            app:tint="@android:color/white" />
+
+    </LinearLayout>
+
+    <!-- Crop Instructions (shown in image mode) -->
+    <TextView
+        android:id="@+id/tv_crop_instructions"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_overlay"
+        android:padding="12dp"
+        android:text="Drag corners to select text area, then tap confirm"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textSize="14sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/layout_action_buttons"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

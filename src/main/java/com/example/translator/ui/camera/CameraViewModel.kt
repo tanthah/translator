@@ -51,19 +51,20 @@ class CameraViewModel(
             _isLoading.value = true
             _errorMessage.value = null
 
-            recognitionJob = viewModelScope.launch {
-                val recognizedText = textRecognitionService.recognizeTextFromImage(inputImage)
-                _detectedText.value = recognizedText
-            }
-
-            recognitionJob?.join()
-            _detectedText.value
+            val recognizedText = textRecognitionService.recognizeTextFromImage(inputImage)
+            _detectedText.value = recognizedText
+            recognizedText
         } catch (e: Exception) {
             handleError("Text recognition failed", e)
             null
         } finally {
             _isLoading.value = false
         }
+    }
+
+    // Add this method that was missing
+    suspend fun recognzeText(inputImage: InputImage): String? {
+        return recognizeText(inputImage)
     }
 
     fun translateDetectedText(text: String, sourceLanguage: String, targetLanguage: String) {
@@ -101,6 +102,12 @@ class CameraViewModel(
     }
 
     fun clearError() {
+        _errorMessage.value = null
+    }
+
+    fun clearResults() {
+        _detectedText.value = null
+        _translationResult.value = null
         _errorMessage.value = null
     }
 

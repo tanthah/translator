@@ -30,7 +30,10 @@
                     android:layout_width="0dp"
                     android:layout_height="40dp"
                     android:layout_weight="1"
-                    android:textSize="8sp"/>
+                    android:textSize="8sp"
+                    android:gravity="center"
+                    android:paddingHorizontal="8dp"
+                    android:spinnerMode="dropdown"/>
 
                 <ImageButton
                     android:id="@+id/btn_swap_languages"
@@ -46,7 +49,10 @@
                     android:layout_width="0dp"
                     android:layout_height="40dp"
                     android:layout_weight="1"
-                    android:textSize="8sp"/>
+                    android:textSize="8sp"
+                    android:gravity="center"
+                    android:paddingHorizontal="8dp"
+                    android:spinnerMode="dropdown"/>
 
             </LinearLayout>
 
@@ -92,20 +98,32 @@
                     android:gravity="end"
                     android:orientation="horizontal">
 
+                    <!-- Thêm nút đọc text nguồn -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_speak_source"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="0dp"
+                        android:text="Read"
+                        app:icon="@drawable/ic_volume_up" />
+
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_voice_input"
                         style="@style/Widget.Material3.Button.TextButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
+                        android:layout_height="50dp"
+                        android:layout_marginEnd="4dp"
                         android:text="Voice Input"
                         app:icon="@drawable/ic_mic" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_translate"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="110dp"
+                        android:layout_height="50dp"
                         android:text="Translate"
+                        android:textSize="9sp"
+                        android:layout_marginTop="-5dp"
                         app:icon="@drawable/ic_translate" />
 
                 </LinearLayout>

@@ -35,6 +35,7 @@ class TextTranslationFragment : Fragment() {
     private lateinit var tvTranslatedText: TextView
     private lateinit var btnTranslate: MaterialButton
     private lateinit var btnVoiceInput: MaterialButton
+    private lateinit var btnSpeakSource: MaterialButton  // Thêm nút đọc text nguồn
     private lateinit var btnSpeak: MaterialButton
     private lateinit var btnCopy: MaterialButton
     private lateinit var btnSwapLanguages: ImageButton
@@ -78,6 +79,7 @@ class TextTranslationFragment : Fragment() {
         tvTranslatedText = view.findViewById(R.id.tv_translated_text)
         btnTranslate = view.findViewById(R.id.btn_translate)
         btnVoiceInput = view.findViewById(R.id.btn_voice_input)
+        btnSpeakSource = view.findViewById(R.id.btn_speak_source)  // Thêm button mới
         btnSpeak = view.findViewById(R.id.btn_speak)
         btnCopy = view.findViewById(R.id.btn_copy)
         btnSwapLanguages = view.findViewById(R.id.btn_swap_languages)
@@ -114,6 +116,11 @@ class TextTranslationFragment : Fragment() {
             } else {
                 requestAudioPermissionAndStartRecording()
             }
+        }
+
+        // Thêm listener cho nút đọc text nguồn
+        btnSpeakSource.setOnClickListener {
+            speakSourceText()
         }
 
         btnSpeak.setOnClickListener {
@@ -195,6 +202,19 @@ class TextTranslationFragment : Fragment() {
                 showToast(getString(R.string.translation_failed))
             }
         }
+    }
+
+    // Thêm chức năng đọc text nguồn
+    private fun speakSourceText() {
+        val sourceText = etSourceText.text?.toString()?.trim()
+
+        if (sourceText.isNullOrEmpty()) {
+            showToast("No text to speak")
+            return
+        }
+
+        val sourceLanguage = getSelectedSourceLanguageCode()
+        speechService.speakText(sourceText, sourceLanguage)
     }
 
     private fun requestAudioPermissionAndStartRecording() {

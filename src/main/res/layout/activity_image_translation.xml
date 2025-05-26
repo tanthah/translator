@@ -11,79 +11,6 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Image Selection -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="250dp"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="2dp">
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <ImageView
-                    android:id="@+id/iv_selected_image"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_centerInParent="true"
-                    android:scaleType="centerCrop"
-                    android:visibility="gone" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
-                        android:layout_marginBottom="16dp"
-                        android:src="@drawable/ic_image"
-                        android:tint="@color/text_secondary" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Select an image to translate"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="16sp" />
-
-                </LinearLayout>
-
-            </RelativeLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Image Selection Buttons -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_select_image"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:text="Gallery"
-                app:icon="@drawable/ic_image" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_take_photo"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:text="Camera"
-                app:icon="@drawable/ic_camera" />
-
-        </LinearLayout>
-
         <!-- Language Selection -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
@@ -101,9 +28,12 @@
                 <Spinner
                     android:id="@+id/spinner_source_language"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="40dp"
                     android:layout_weight="1"
-                    android:textSize="10sp"/>
+                    android:textSize="8sp"
+                    android:gravity="center"
+                    android:paddingHorizontal="8dp"
+                    android:spinnerMode="dropdown" />
 
                 <ImageView
                     android:layout_width="24dp"
@@ -116,23 +46,188 @@
                 <Spinner
                     android:id="@+id/spinner_target_language"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="40dp"
                     android:layout_weight="1"
-                    android:textSize="10sp"/>
+                    android:textSize="8sp"
+                    android:gravity="center"
+                    android:paddingHorizontal="8dp"
+                    android:spinnerMode="dropdown"/>
 
             </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Translate Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_translate"
+        <!-- Image Selection Layout -->
+        <LinearLayout
+            android:id="@+id/layout_image_selection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:enabled="false"
-            android:text="Translate Image"
-            app:icon="@drawable/ic_translate" />
+            android:orientation="vertical"
+            android:visibility="visible">
+
+            <!-- Placeholder Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="32dp">
+
+                    <ImageView
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:layout_marginBottom="16dp"
+                        android:src="@drawable/ic_image"
+                        android:tint="@color/text_secondary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:text="Select an image to translate"
+                        android:textAlignment="center"
+                        android:textColor="@color/text_primary"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Choose from gallery or take a photo"
+                        android:textAlignment="center"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="14sp" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Selection Buttons -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_select_image"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:text="Gallery"
+                    android:textAllCaps="false"
+                    app:icon="@drawable/ic_image" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_take_photo"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:text="Camera"
+                    android:textAllCaps="false"
+                    app:icon="@drawable/ic_camera" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Image Preview Layout -->
+        <LinearLayout
+            android:id="@+id/layout_image_preview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <!-- Image Preview Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="400dp"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/iv_selected_image"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="matrix" />
+
+                    <com.example.translator.ui.camera.CropOverlayView
+                        android:id="@+id/crop_overlay"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:visibility="visible" />
+
+                </FrameLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Instructions -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:background="@color/background_light"
+                android:padding="12dp"
+                android:text="• Pinch to zoom in/out\n• Drag to move image\n• Drag corners to select text area\n• Tap confirm when ready"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <!-- Preview Action Buttons -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_retake"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:text="Choose Another"
+                    android:textAllCaps="false"
+                    app:icon="@drawable/ic_refresh" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_confirm_crop"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="4dp"
+                    android:layout_weight="1"
+                    android:text="Confirm Area"
+                    android:textAllCaps="false"
+                    app:icon="@drawable/ic_check" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_translate"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:enabled="false"
+                    android:text="Translate"
+                    android:textAllCaps="false"
+                    app:icon="@drawable/ic_translate" />
+
+            </LinearLayout>
+
+        </LinearLayout>
 
         <!-- Progress Bar -->
         <ProgressBar
@@ -140,66 +235,80 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginBottom="16dp"
+            android:layout_marginVertical="16dp"
             android:visibility="gone" />
 
-        <!-- Results -->
-        <com.google.android.material.card.MaterialCardView
+        <!-- Results Section -->
+        <ScrollView
+            android:id="@+id/scroll_results"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="2dp">
+            android:maxHeight="300dp"
+            android:visibility="gone">
 
-            <LinearLayout
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:text="Detected Text:"
-                    android:textColor="@color/black"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tv_detected_text"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:background="@color/background_light"
-                    android:minHeight="60dp"
-                    android:padding="12dp"
-                    android:text=""
-                    android:textSize="14sp"
-                    android:visibility="gone" />
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:text="Translation:"
-                    android:textColor="@color/black"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    <!-- Detected Text Section -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:text="Detected Text:"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/tv_translated_text"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@color/background_light"
-                    android:minHeight="60dp"
-                    android:padding="12dp"
-                    android:text=""
-                    android:textSize="16sp"
-                    android:visibility="gone" />
+                    <TextView
+                        android:id="@+id/tv_detected_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:background="@color/background_light"
+                        android:minHeight="60dp"
+                        android:padding="12dp"
+                        android:text=""
+                        android:textIsSelectable="true"
+                        android:textSize="14sp"
+                        android:visibility="gone" />
 
-            </LinearLayout>
+                    <!-- Translation Section -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:text="Translation:"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
-        </com.google.android.material.card.MaterialCardView>
+                    <TextView
+                        android:id="@+id/tv_translated_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/background_light"
+                        android:minHeight="60dp"
+                        android:padding="12dp"
+                        android:text=""
+                        android:textIsSelectable="true"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </ScrollView>
 
     </LinearLayout>
 
