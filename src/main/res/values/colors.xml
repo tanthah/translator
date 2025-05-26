@@ -1,19 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Primary colors -->
     <color name="primary_color">#2196F3</color>
     <color name="primary_dark">#1976D2</color>
-    <color name="accent_color">#FF4081</color>
+    <color name="primary_light">#BBDEFB</color>
 
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="text_primary">#DE000000</color>
-    <color name="text_secondary">#8A000000</color>
+    <!-- Accent colors -->
+    <color name="accent_color">#FF5722</color>
+    <color name="accent_light">#FF8A65</color>
+    <color name="accent_dark">#D84315</color>
 
-    <color name="background_light">#F5F5F5</color>
-    <color name="card_background">#FFFFFF</color>
-    <color name="overlay_background">#80000000</color>
+    <!-- Text colors -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_hint">#BDBDBD</color>
 
+    <!-- Basic colors -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
     <color name="transparent">#00000000</color>
-    <color name="semi_transparent_white">#80FFFFFF</color>
-    <color name="semi_transparent_black">#80000000</color>
+
+    <!-- Background colors -->
+    <color name="background_light">#FAFAFA</color>
+    <color name="background_dark">#303030</color>
+    <color name="surface_light">#FFFFFF</color>
+    <color name="surface_dark">#424242</color>
+
+    <!-- Overlay colors -->
+    <color name="overlay_dark">#80000000</color>
+    <color name="overlay_light">#80FFFFFF</color>
+
+    <!-- Status colors -->
+    <color name="success">#4CAF50</color>
+    <color name="warning">#FF9800</color>
+    <color name="error">#F44336</color>
+    <color name="info">#2196F3</color>
+
+    <!-- Divider -->
+    <color name="divider">#E0E0E0</color>
+
+    <!-- Button colors -->
+    <color name="button_pressed">#1976D2</color>
+    <color name="button_disabled">#E0E0E0</color>
 </resources>

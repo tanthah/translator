@@ -19,6 +19,7 @@
     <string name="no_text_detected">No text detected</string>
     <string name="translate">Translate</string>
     <string name="translating">Translating...</string>
+    <string name="analyzing_frame">Analyzing current frame...</string>
 
     <!-- Buttons -->
     <string name="voice_input">Voice Input</string>
@@ -28,6 +29,7 @@
     <string name="take_photo">Take Photo</string>
     <string name="gallery">Gallery</string>
     <string name="camera">Camera</string>
+    <string name="listening">Listening...</string>
 
     <!-- Settings -->
     <string name="settings">Settings</string>
@@ -51,8 +53,41 @@
     <string name="no_internet_connection">No internet connection</string>
     <string name="text_recognition_failed">Text recognition failed</string>
     <string name="speech_recognition_failed">Speech recognition failed</string>
+    <string name="translation_service_error">Translation service error</string>
+    <string name="generic_error">An error occurred. Please try again.</string>
+    <string name="network_timeout">Request timed out. Please try again.</string>
+    <string name="model_download_failed">Failed to download translation model</string>
 
     <!-- Success Messages -->
     <string name="text_copied">Text copied to clipboard</string>
     <string name="settings_saved">Settings saved successfully</string>
+
+    <!-- Content Descriptions for Accessibility -->
+    <string name="swap_languages_description">Swap source and target languages</string>
+    <string name="voice_input_description">Start voice input</string>
+    <string name="speak_translation_description">Speak translated text</string>
+    <string name="copy_translation_description">Copy translated text</string>
+    <string name="camera_capture_description">Capture image for translation</string>
+    <string name="flash_toggle_description">Toggle camera flash</string>
+
+    <!-- Language Detection -->
+    <string name="language_detected">Language detected: %s</string>
+    <string name="auto_detect">Auto-detect</string>
+
+    <!-- Camera -->
+    <string name="camera_error">Camera error occurred</string>
+    <string name="camera_not_available">Camera not available</string>
+    <string name="image_processing">Processing image...</string>
+
+    <!-- Voice -->
+    <string name="tts_not_available">Text-to-speech not available</string>
+    <string name="speech_recognition_not_available">Speech recognition not available</string>
+
+    <!-- File operations -->
+    <string name="image_load_failed">Failed to load image</string>
+    <string name="image_too_large">Image too large. Please select a smaller image.</string>
+
+    <!-- Camera specific labels -->
+    <string name="detected_text_label">Detected Text:</string>
+    <string name="translation_label">Translation:</string>
 </resources>

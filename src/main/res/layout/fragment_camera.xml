@@ -4,9 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FF000000"
+    android:background="@android:color/black"
     tools:context=".ui.camera.CameraFragment">
 
+    <!-- Camera Preview -->
     <androidx.camera.view.PreviewView
         android:id="@+id/preview_view"
         android:layout_width="0dp"
@@ -14,16 +15,19 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:scaleType="fillCenter" />
 
-    <!-- Language Selection Overlay -->
+    <!-- Language Selection Overlay at Top -->
     <LinearLayout
         android:id="@+id/layout_language_selection"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="#80000000"
+        android:background="@drawable/bg_overlay"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:layout_marginTop="40dp"
+        android:padding="12dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -31,119 +35,40 @@
         <Spinner
             android:id="@+id/spinner_source_language"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="40dp"
             android:layout_weight="1"
-            android:background="@android:drawable/btn_dropdown"
-            android:spinnerMode="dropdown" />
+            android:background="@drawable/bg_rounded_white"
+            android:gravity="center"
+            android:paddingHorizontal="8dp"
+            android:spinnerMode="dropdown"
+            android:textColor="@android:color/black"
+            android:textSize="14sp" />
 
         <ImageButton
             android:id="@+id/btn_swap_languages"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_marginHorizontal="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Swap Languages"
-            android:src="@android:drawable/ic_menu_revert"
-            android:tint="#FFFFFFFF" />
+            android:background="@drawable/bg_rounded_white"
+            android:contentDescription="@string/swap_languages_description"
+            android:padding="8dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_swap"
+            android:tint="@color/black" />
 
         <Spinner
             android:id="@+id/spinner_target_language"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="40dp"
             android:layout_weight="1"
-            android:background="@android:drawable/btn_dropdown"
-            android:spinnerMode="dropdown" />
+            android:background="@drawable/bg_rounded_white"
+            android:gravity="center"
+            android:paddingHorizontal="8dp"
+            android:spinnerMode="dropdown"
+            android:textColor="@android:color/black"
+            android:textSize="14sp" />
 
     </LinearLayout>
-
-    <!-- Translation Results Overlay -->
-    <LinearLayout
-        android:id="@+id/layout_translation_results"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="#80000000"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:layout_marginHorizontal="16dp"
-        app:layout_constraintBottom_toTopOf="@+id/btn_capture"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/layout_language_selection"
-        app:layout_constraintVertical_bias="1.0">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:text="Detected Text:"
-            android:textColor="#FFFFFFFF"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tv_detected_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:maxLines="3"
-            android:ellipsize="end"
-            android:text="No text detected"
-            android:textColor="#FFFFFFFF"
-            android:textSize="14sp"
-            android:background="#33FFFFFF"
-            android:padding="8dp"
-            android:minHeight="48dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:text="Translation:"
-            android:textColor="#FFFFFFFF"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tv_translated_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:maxLines="3"
-            android:ellipsize="end"
-            android:text="Translation will appear here"
-            android:textColor="#FFFFFFFF"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:background="#33FFFFFF"
-            android:padding="8dp"
-            android:minHeight="48dp" />
-
-    </LinearLayout>
-
-    <!-- Progress Bar -->
-    <ProgressBar
-        android:id="@+id/progress_bar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:indeterminateTint="#FFFFFFFF"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Capture Button -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/btn_capture"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
-        android:contentDescription="Capture"
-        android:src="@android:drawable/ic_menu_camera"
-        app:backgroundTint="#FF2196F3"
-        app:tint="#FFFFFFFF"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
 
     <!-- Flash Toggle Button -->
     <ImageButton
@@ -151,12 +76,112 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_margin="16dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Toggle Flash"
+        android:background="@drawable/bg_rounded_white"
+        android:contentDescription="@string/flash_toggle_description"
+        android:padding="12dp"
+        android:scaleType="fitCenter"
         android:src="@android:drawable/ic_menu_day"
-        android:tint="@color/white"
-        android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/layout_language_selection" />
+        app:layout_constraintTop_toBottomOf="@id/layout_language_selection"
+        app:tint="@android:color/black" />
+
+    <!-- Translation Results Overlay at Bottom -->
+    <ScrollView
+        android:id="@+id/scroll_translation_results"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_overlay"
+        android:padding="16dp"
+        android:scrollbars="vertical"
+        app:layout_constraintBottom_toTopOf="@id/btn_capture"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_max="200dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_flash"
+        app:layout_constraintVertical_bias="1.0">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Detected Text Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:text="@string/detected_text_label"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_detected_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_rounded_white"
+                android:minHeight="48dp"
+                android:padding="12dp"
+                android:text="@string/no_text_detected"
+                android:textColor="@android:color/black"
+                android:textSize="14sp" />
+
+            <!-- Translation Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:text="@string/translation_label"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_translated_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_rounded_white"
+                android:minHeight="48dp"
+                android:padding="12dp"
+                android:text="@string/translation_result"
+                android:textColor="@android:color/black"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <!-- Progress Bar -->
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminateTint="@android:color/white"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible" />
+
+    <!-- Capture Button -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btn_capture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
+        android:contentDescription="@string/camera_capture_description"
+        android:src="@drawable/ic_camera"
+        app:backgroundTint="@color/primary_color"
+        app:fabSize="normal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:tint="@android:color/white" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

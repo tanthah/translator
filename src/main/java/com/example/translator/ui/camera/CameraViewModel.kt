@@ -6,11 +6,14 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
 import com.google.mlkit.vision.common.InputImage
 import com.example.translator.data.repository.LanguageRepository
 import com.example.translator.data.repository.UserRepository
 import com.example.translator.services.TextRecognitionService
 import com.example.translator.services.TranslationService
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class CameraViewModel(
     private val userRepository: UserRepository,
@@ -36,40 +39,79 @@ class CameraViewModel(
     private val _errorMessage = MutableLiveData<String?>()
     val errorMessage: LiveData<String?> = _errorMessage
 
+    // Jobs for cancellation
+    private var recognitionJob: Job? = null
+    private var translationJob: Job? = null
+
     suspend fun recognizeText(inputImage: InputImage): String? {
-        _isLoading.value = true
+        // Cancel previous recognition job
+        recognitionJob?.cancel()
 
         return try {
-            val recognizedText = textRecognitionService.recognizeTextFromImage(inputImage)
-            _detectedText.value = recognizedText
-            recognizedText
+            _isLoading.value = true
+            _errorMessage.value = null
+
+            recognitionJob = viewModelScope.launch {
+                val recognizedText = textRecognitionService.recognizeTextFromImage(inputImage)
+                _detectedText.value = recognizedText
+            }
+
+            recognitionJob?.join()
+            _detectedText.value
         } catch (e: Exception) {
-            _errorMessage.value = "Text recognition failed: ${e.message}"
+            handleError("Text recognition failed", e)
             null
         } finally {
             _isLoading.value = false
         }
     }
 
-    suspend fun translateDetectedText(text: String, sourceLanguage: String, targetLanguage: String) {
-        _isLoading.value = true
+    fun translateDetectedText(text: String, sourceLanguage: String, targetLanguage: String) {
+        // Cancel previous translation job
+        translationJob?.cancel()
 
-        try {
-            val result = translationService.translateText(text, sourceLanguage, targetLanguage)
-            _translationResult.value = result
+        translationJob = viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                _errorMessage.value = null
 
-            if (result == null) {
-                _errorMessage.value = "Translation failed"
+                val result = translationService.translateText(text, sourceLanguage, targetLanguage)
+                _translationResult.value = result
+
+                if (result == null) {
+                    _errorMessage.value = "Translation failed. Please check your internet connection."
+                }
+            } catch (e: Exception) {
+                handleError("Translation failed", e)
+            } finally {
+                _isLoading.value = false
             }
-        } catch (e: Exception) {
-            _errorMessage.value = "Translation error: ${e.message}"
-        } finally {
-            _isLoading.value = false
         }
+    }
+
+    private fun handleError(message: String, exception: Exception) {
+        val errorMsg = when {
+            exception.message?.contains("network", ignoreCase = true) == true ->
+                "No internet connection available"
+            exception.message?.contains("timeout", ignoreCase = true) == true ->
+                "Request timed out. Please try again."
+            else -> "$message: ${exception.message ?: "Unknown error"}"
+        }
+        _errorMessage.value = errorMsg
+    }
+
+    fun clearError() {
+        _errorMessage.value = null
     }
 
     override fun onCleared() {
         super.onCleared()
+
+        // Cancel ongoing jobs
+        recognitionJob?.cancel()
+        translationJob?.cancel()
+
+        // Close services
         textRecognitionService.close()
         translationService.closeTranslators()
     }
@@ -80,11 +122,11 @@ class CameraViewModelFactory(
     private val languageRepository: LanguageRepository,
     private val context: Context
 ) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(CameraViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
             return CameraViewModel(userRepository, languageRepository, context) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }

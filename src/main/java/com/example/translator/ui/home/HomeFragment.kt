@@ -34,50 +34,71 @@ class HomeFragment : Fragment() {
 
         setupViewModel()
         setupClickListeners(view)
+        initializeDefaultPreferences()
     }
 
     private fun setupViewModel() {
         val application = requireActivity().application as TranslatorApplication
         val factory = HomeViewModelFactory(application.userRepository, application.languageRepository)
         viewModel = ViewModelProvider(this, factory)[HomeViewModel::class.java]
-
-        // Initialize default preferences if needed
-        lifecycleScope.launch {
-            viewModel.initializeDefaultPreferences()
-        }
     }
 
     private fun setupClickListeners(view: View) {
-        view.findViewById<MaterialCardView>(R.id.card_camera_translation).setOnClickListener {
-            startActivity(Intent(requireContext(), CameraActivity::class.java))
-        }
-
-        view.findViewById<MaterialCardView>(R.id.card_text_translation).setOnClickListener {
-            // Switch to text translation tab
-            (requireActivity() as MainActivity).supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, com.example.translator.ui.text.TextTranslationFragment())
-                .commit()
-        }
-
-        view.findViewById<MaterialCardView>(R.id.card_image_translation).setOnClickListener {
-            startActivity(Intent(requireContext(), ImageTranslationActivity::class.java))
-        }
-
-        view.findViewById<MaterialCardView>(R.id.card_voice_translation).setOnClickListener {
-            // Switch to voice translation (can be in text fragment)
-            val textFragment = com.example.translator.ui.text.TextTranslationFragment()
-            val bundle = Bundle().apply {
-                putBoolean("start_voice", true)
+        // Camera Translation Card
+        view.findViewById<MaterialCardView>(R.id.card_camera_translation)?.setOnClickListener {
+            try {
+                startActivity(Intent(requireContext(), CameraActivity::class.java))
+            } catch (e: Exception) {
+                // Handle activity not found or other errors
+                e.printStackTrace()
             }
-            textFragment.arguments = bundle
-
-            (requireActivity() as MainActivity).supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, textFragment)
-                .commit()
         }
 
-        view.findViewById<View>(R.id.btn_settings).setOnClickListener {
-            startActivity(Intent(requireContext(), SettingsActivity::class.java))
+        // Text Translation Card
+        view.findViewById<MaterialCardView>(R.id.card_text_translation)?.setOnClickListener {
+            try {
+                (requireActivity() as? MainActivity)?.switchToTextTranslation(false)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        // Image Translation Card
+        view.findViewById<MaterialCardView>(R.id.card_image_translation)?.setOnClickListener {
+            try {
+                startActivity(Intent(requireContext(), ImageTranslationActivity::class.java))
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        // Voice Translation Card
+        view.findViewById<MaterialCardView>(R.id.card_voice_translation)?.setOnClickListener {
+            try {
+                (requireActivity() as? MainActivity)?.switchToTextTranslation(true)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        // Settings Button
+        view.findViewById<View>(R.id.btn_settings)?.setOnClickListener {
+            try {
+                startActivity(Intent(requireContext(), SettingsActivity::class.java))
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun initializeDefaultPreferences() {
+        lifecycleScope.launch {
+            try {
+                viewModel.initializeDefaultPreferences()
+            } catch (e: Exception) {
+                // Handle initialization error silently
+                e.printStackTrace()
+            }
         }
     }
 }

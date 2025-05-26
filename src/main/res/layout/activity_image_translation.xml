@@ -101,8 +101,9 @@
                 <Spinner
                     android:id="@+id/spinner_source_language"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1" />
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="10sp"/>
 
                 <ImageView
                     android:layout_width="24dp"
@@ -115,8 +116,9 @@
                 <Spinner
                     android:id="@+id/spinner_target_language"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1" />
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="10sp"/>
 
             </LinearLayout>
 

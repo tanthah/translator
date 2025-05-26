@@ -28,13 +28,14 @@
                 <Spinner
                     android:id="@+id/spinner_source_language"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1" />
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:textSize="8sp"/>
 
                 <ImageButton
                     android:id="@+id/btn_swap_languages"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:layout_marginHorizontal="8dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="Swap Languages"
@@ -43,8 +44,9 @@
                 <Spinner
                     android:id="@+id/spinner_target_language"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1" />
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:textSize="8sp"/>
 
             </LinearLayout>
 

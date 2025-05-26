@@ -2,17 +2,25 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Permissions -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- Hardware features -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="true" />
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false" />
 
     <application
+        android:name=".TranslatorApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -22,25 +30,37 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Translator"
         tools:targetApi="31">
+
+        <!-- Main Activity -->
         <activity
             android:name=".ui.MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.Translator">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-
+        <!-- Camera Activity -->
         <activity
             android:name=".ui.camera.CameraActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.LanguageTranslator.NoActionBar" />
+            android:theme="@style/Theme.Translator.NoActionBar"
+            android:exported="false" />
 
+        <!-- Image Translation Activity -->
         <activity
             android:name=".ui.image.ImageTranslationActivity"
-            android:theme="@style/Theme.LanguageTranslator" />
+            android:theme="@style/Theme.Translator"
+            android:exported="false" />
+
+        <!-- Settings Activity -->
+        <activity
+            android:name=".ui.settings.SettingsActivity"
+            android:theme="@style/Theme.Translator"
+            android:exported="false" />
+
     </application>
 
 </manifest>

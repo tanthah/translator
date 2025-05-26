@@ -20,6 +20,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.example.translator.R
 import com.example.translator.TranslatorApplication
 import com.example.translator.services.SpeechService
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class TextTranslationFragment : Fragment() {
@@ -27,6 +28,7 @@ class TextTranslationFragment : Fragment() {
     private lateinit var viewModel: TextTranslationViewModel
     private lateinit var speechService: SpeechService
 
+    // Views
     private lateinit var spinnerSourceLanguage: Spinner
     private lateinit var spinnerTargetLanguage: Spinner
     private lateinit var etSourceText: TextInputEditText
@@ -37,6 +39,10 @@ class TextTranslationFragment : Fragment() {
     private lateinit var btnCopy: MaterialButton
     private lateinit var btnSwapLanguages: ImageButton
     private lateinit var progressBar: ProgressBar
+
+    // Voice recognition
+    private var voiceRecognitionJob: Job? = null
+    private var isListening = false
 
     private val RECORD_AUDIO_PERMISSION_CODE = 101
 
@@ -92,63 +98,34 @@ class TextTranslationFragment : Fragment() {
         speechService = SpeechService(requireContext())
         speechService.initializeTextToSpeech { success ->
             if (!success) {
-                Toast.makeText(requireContext(), "Text-to-Speech initialization failed", Toast.LENGTH_SHORT).show()
+                showToast(getString(R.string.tts_not_available))
             }
         }
     }
 
     private fun setupClickListeners() {
         btnTranslate.setOnClickListener {
-            val sourceText = etSourceText.text.toString().trim()
-            if (sourceText.isNotEmpty()) {
-                val sourceLanguage = (spinnerSourceLanguage.selectedItem as LanguageSpinnerItem).language.languageCode
-                val targetLanguage = (spinnerTargetLanguage.selectedItem as LanguageSpinnerItem).language.languageCode
-
-                lifecycleScope.launch {
-                    viewModel.translateText(sourceText, sourceLanguage, targetLanguage)
-                }
-            } else {
-                Toast.makeText(requireContext(), "Please enter text to translate", Toast.LENGTH_SHORT).show()
-            }
+            performTranslation()
         }
 
         btnVoiceInput.setOnClickListener {
-            requestAudioPermissionAndStartRecording()
+            if (isListening) {
+                stopVoiceRecording()
+            } else {
+                requestAudioPermissionAndStartRecording()
+            }
         }
 
         btnSpeak.setOnClickListener {
-            val translatedText = tvTranslatedText.text.toString()
-            if (translatedText.isNotEmpty() && translatedText != "Translation will appear here") {
-                val targetLanguage = (spinnerTargetLanguage.selectedItem as LanguageSpinnerItem).language.languageCode
-                speechService.speakText(translatedText, targetLanguage)
-            }
+            speakTranslation()
         }
 
         btnCopy.setOnClickListener {
-            val translatedText = tvTranslatedText.text.toString()
-            if (translatedText.isNotEmpty() && translatedText != "Translation will appear here") {
-                val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                val clip = ClipData.newPlainText("Translated Text", translatedText)
-                clipboard.setPrimaryClip(clip)
-                Toast.makeText(requireContext(), "Text copied to clipboard", Toast.LENGTH_SHORT).show()
-            }
+            copyTranslationToClipboard()
         }
 
         btnSwapLanguages.setOnClickListener {
-            val sourcePosition = spinnerSourceLanguage.selectedItemPosition
-            val targetPosition = spinnerTargetLanguage.selectedItemPosition
-
-            spinnerSourceLanguage.setSelection(targetPosition)
-            spinnerTargetLanguage.setSelection(sourcePosition)
-
-            // Swap text if both fields have content
-            val sourceText = etSourceText.text.toString()
-            val targetText = tvTranslatedText.text.toString()
-
-            if (sourceText.isNotEmpty() && targetText.isNotEmpty() && targetText != "Translation will appear here") {
-                etSourceText.setText(targetText)
-                tvTranslatedText.text = sourceText
-            }
+            swapLanguages()
         }
     }
 
@@ -158,7 +135,7 @@ class TextTranslationFragment : Fragment() {
         }
 
         viewModel.translationResult.observe(viewLifecycleOwner) { result ->
-            tvTranslatedText.text = result ?: "Translation failed"
+            tvTranslatedText.text = result ?: getString(R.string.translation_failed)
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
@@ -168,12 +145,15 @@ class TextTranslationFragment : Fragment() {
 
         viewModel.errorMessage.observe(viewLifecycleOwner) { error ->
             error?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
+                showToast(it)
+                viewModel.clearError()
             }
         }
     }
 
     private fun setupLanguageSpinners(languages: List<com.example.translator.data.model.Language>) {
+        if (languages.isEmpty()) return
+
         val adapter = LanguageSpinnerAdapter(requireContext(), languages)
 
         spinnerSourceLanguage.adapter = adapter
@@ -185,6 +165,36 @@ class TextTranslationFragment : Fragment() {
 
         if (defaultSourceIndex != -1) spinnerSourceLanguage.setSelection(defaultSourceIndex)
         if (defaultTargetIndex != -1) spinnerTargetLanguage.setSelection(defaultTargetIndex)
+    }
+
+    private fun performTranslation() {
+        val sourceText = etSourceText.text?.toString()?.trim()
+
+        if (sourceText.isNullOrEmpty()) {
+            showToast(getString(R.string.enter_text_hint))
+            return
+        }
+
+        if (sourceText.length > 5000) {
+            showToast("Text too long. Maximum 5000 characters allowed.")
+            return
+        }
+
+        val sourceLanguage = getSelectedSourceLanguageCode()
+        val targetLanguage = getSelectedTargetLanguageCode()
+
+        if (sourceLanguage == targetLanguage) {
+            tvTranslatedText.text = sourceText
+            return
+        }
+
+        lifecycleScope.launch {
+            try {
+                viewModel.translateText(sourceText, sourceLanguage, targetLanguage)
+            } catch (e: Exception) {
+                showToast(getString(R.string.translation_failed))
+            }
+        }
     }
 
     private fun requestAudioPermissionAndStartRecording() {
@@ -201,33 +211,120 @@ class TextTranslationFragment : Fragment() {
     }
 
     private fun startVoiceRecording() {
-        val sourceLanguage = (spinnerSourceLanguage.selectedItem as LanguageSpinnerItem).language.languageCode
+        if (isListening) return
 
-        lifecycleScope.launch {
-            speechService.startSpeechRecognition(sourceLanguage).collect { result ->
-                when (result) {
-                    is SpeechService.SpeechResult.Ready -> {
-                        btnVoiceInput.text = "Listening..."
-                        btnVoiceInput.isEnabled = false
-                    }
-                    is SpeechService.SpeechResult.FinalResult -> {
-                        etSourceText.setText(result.text)
-                        btnVoiceInput.text = "Voice Input"
-                        btnVoiceInput.isEnabled = true
+        val sourceLanguage = getSelectedSourceLanguageCode()
+        isListening = true
+        btnVoiceInput.text = getString(R.string.listening)
+        btnVoiceInput.isEnabled = false
 
-                        // Auto-translate if text is recognized
-                        val targetLanguage = (spinnerTargetLanguage.selectedItem as LanguageSpinnerItem).language.languageCode
-                        viewModel.translateText(result.text, sourceLanguage, targetLanguage)
+        voiceRecognitionJob = lifecycleScope.launch {
+            try {
+                speechService.startSpeechRecognition(sourceLanguage).collect { result ->
+                    when (result) {
+                        is SpeechService.SpeechResult.Ready -> {
+                            // Voice recognition is ready
+                        }
+                        is SpeechService.SpeechResult.FinalResult -> {
+                            etSourceText.setText(result.text)
+                            stopVoiceRecording()
+
+                            // Auto-translate if text is recognized
+                            val targetLanguage = getSelectedTargetLanguageCode()
+                            if (result.text.isNotEmpty()) {
+                                viewModel.translateText(result.text, sourceLanguage, targetLanguage)
+                            }
+                        }
+                        is SpeechService.SpeechResult.Error -> {
+                            stopVoiceRecording()
+                            showToast(getString(R.string.speech_recognition_failed))
+                        }
+                        else -> {
+                            // Handle other speech results if needed
+                        }
                     }
-                    is SpeechService.SpeechResult.Error -> {
-                        btnVoiceInput.text = "Voice Input"
-                        btnVoiceInput.isEnabled = true
-                        Toast.makeText(requireContext(), "Speech recognition error", Toast.LENGTH_SHORT).show()
-                    }
-                    else -> {}
                 }
+            } catch (e: Exception) {
+                stopVoiceRecording()
+                showToast(getString(R.string.speech_recognition_failed))
             }
         }
+    }
+
+    private fun stopVoiceRecording() {
+        voiceRecognitionJob?.cancel()
+        speechService.stopSpeechRecognition()
+        isListening = false
+        btnVoiceInput.text = getString(R.string.voice_input)
+        btnVoiceInput.isEnabled = true
+    }
+
+    private fun speakTranslation() {
+        val translatedText = tvTranslatedText.text?.toString()
+
+        if (translatedText.isNullOrEmpty() || translatedText == getString(R.string.translation_result)) {
+            showToast("No translation to speak")
+            return
+        }
+
+        val targetLanguage = getSelectedTargetLanguageCode()
+        speechService.speakText(translatedText, targetLanguage)
+    }
+
+    private fun copyTranslationToClipboard() {
+        val translatedText = tvTranslatedText.text?.toString()
+
+        if (translatedText.isNullOrEmpty() || translatedText == getString(R.string.translation_result)) {
+            showToast("No translation to copy")
+            return
+        }
+
+        try {
+            val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = ClipData.newPlainText("Translated Text", translatedText)
+            clipboard.setPrimaryClip(clip)
+            showToast(getString(R.string.text_copied))
+        } catch (e: Exception) {
+            showToast("Failed to copy text")
+        }
+    }
+
+    private fun swapLanguages() {
+        val sourcePosition = spinnerSourceLanguage.selectedItemPosition
+        val targetPosition = spinnerTargetLanguage.selectedItemPosition
+
+        spinnerSourceLanguage.setSelection(targetPosition)
+        spinnerTargetLanguage.setSelection(sourcePosition)
+
+        // Swap text if both fields have content
+        val sourceText = etSourceText.text?.toString()
+        val targetText = tvTranslatedText.text?.toString()
+
+        if (!sourceText.isNullOrEmpty() && !targetText.isNullOrEmpty() &&
+            targetText != getString(R.string.translation_result)) {
+            etSourceText.setText(targetText)
+            tvTranslatedText.text = sourceText
+        }
+    }
+
+    private fun getSelectedSourceLanguageCode(): String {
+        return try {
+            (spinnerSourceLanguage.selectedItem as? LanguageSpinnerItem)?.language?.languageCode ?: "en"
+        } catch (e: Exception) {
+            "en"
+        }
+    }
+
+    private fun getSelectedTargetLanguageCode(): String {
+        return try {
+            (spinnerTargetLanguage.selectedItem as? LanguageSpinnerItem)?.language?.languageCode ?: "vi"
+        } catch (e: Exception) {
+            "vi"
+        }
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
     }
 
     override fun onRequestPermissionsResult(
@@ -241,13 +338,20 @@ class TextTranslationFragment : Fragment() {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 startVoiceRecording()
             } else {
-                Toast.makeText(requireContext(), "Audio permission required for voice input", Toast.LENGTH_SHORT).show()
+                showToast(getString(R.string.audio_permission_required))
             }
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun onPause() {
+        super.onPause()
+        stopVoiceRecording()
+        speechService.stopSpeaking()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        voiceRecognitionJob?.cancel()
         speechService.release()
     }
 }

@@ -16,12 +16,13 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.button.MaterialButton
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.mlkit.vision.common.InputImage
 import com.example.translator.R
 import com.example.translator.TranslatorApplication
 import com.example.translator.ui.text.LanguageSpinnerAdapter
 import com.example.translator.ui.text.LanguageSpinnerItem
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -31,18 +32,28 @@ class CameraFragment : Fragment() {
     private lateinit var viewModel: CameraViewModel
     private lateinit var cameraExecutor: ExecutorService
 
+    // Views
     private lateinit var previewView: PreviewView
     private lateinit var spinnerSourceLanguage: Spinner
     private lateinit var spinnerTargetLanguage: Spinner
     private lateinit var tvDetectedText: TextView
     private lateinit var tvTranslatedText: TextView
-    private lateinit var btnCapture: MaterialButton
+    private lateinit var btnCapture: FloatingActionButton
     private lateinit var btnSwapLanguages: ImageButton
+    private lateinit var btnFlash: ImageButton
     private lateinit var progressBar: ProgressBar
 
+    // Camera components
     private var imageCapture: ImageCapture? = null
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
+    private var cameraProvider: ProcessCameraProvider? = null
+    private var flashMode = ImageCapture.FLASH_MODE_OFF
+
+    // Processing control
+    private var lastProcessTime = 0L
+    private var processingJob: Job? = null
+    private val PROCESSING_INTERVAL = 2000L // 2 seconds between processing
 
     private val CAMERA_PERMISSION_CODE = 100
 
@@ -79,6 +90,7 @@ class CameraFragment : Fragment() {
         tvTranslatedText = view.findViewById(R.id.tv_translated_text)
         btnCapture = view.findViewById(R.id.btn_capture)
         btnSwapLanguages = view.findViewById(R.id.btn_swap_languages)
+        btnFlash = view.findViewById(R.id.btn_flash)
         progressBar = view.findViewById(R.id.progress_bar)
     }
 
@@ -94,15 +106,15 @@ class CameraFragment : Fragment() {
 
     private fun setupClickListeners() {
         btnCapture.setOnClickListener {
-            captureImage()
+            captureCurrentFrame()
         }
 
         btnSwapLanguages.setOnClickListener {
-            val sourcePosition = spinnerSourceLanguage.selectedItemPosition
-            val targetPosition = spinnerTargetLanguage.selectedItemPosition
+            swapLanguages()
+        }
 
-            spinnerSourceLanguage.setSelection(targetPosition)
-            spinnerTargetLanguage.setSelection(sourcePosition)
+        btnFlash.setOnClickListener {
+            toggleFlash()
         }
     }
 
@@ -112,11 +124,11 @@ class CameraFragment : Fragment() {
         }
 
         viewModel.detectedText.observe(viewLifecycleOwner) { text ->
-            tvDetectedText.text = text ?: "No text detected"
+            tvDetectedText.text = text ?: getString(R.string.no_text_detected)
         }
 
         viewModel.translationResult.observe(viewLifecycleOwner) { result ->
-            tvTranslatedText.text = result ?: "Translation will appear here"
+            tvTranslatedText.text = result ?: getString(R.string.translation_result)
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
@@ -126,11 +138,14 @@ class CameraFragment : Fragment() {
         viewModel.errorMessage.observe(viewLifecycleOwner) { error ->
             error?.let {
                 Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
+                viewModel.clearError()
             }
         }
     }
 
     private fun setupLanguageSpinners(languages: List<com.example.translator.data.model.Language>) {
+        if (languages.isEmpty()) return
+
         val adapter = LanguageSpinnerAdapter(requireContext(), languages)
 
         spinnerSourceLanguage.adapter = adapter
@@ -148,60 +163,150 @@ class CameraFragment : Fragment() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
 
         cameraProviderFuture.addListener({
-            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-
-            val preview = Preview.Builder()
-                .build()
-                .also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
-                }
-
-            imageCapture = ImageCapture.Builder().build()
-
-            imageAnalyzer = ImageAnalysis.Builder()
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .build()
-                .also {
-                    it.setAnalyzer(cameraExecutor) { imageProxy ->
-                        processImage(imageProxy)
-                    }
-                }
-
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
             try {
-                cameraProvider.unbindAll()
-                camera = cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, imageCapture, imageAnalyzer
-                )
+                cameraProvider = cameraProviderFuture.get()
+                bindCameraUseCases()
             } catch (exc: Exception) {
-                Log.e("CameraFragment", "Use case binding failed", exc)
+                Log.e(TAG, "Use case binding failed", exc)
+                showError("Camera initialization failed")
             }
-
         }, ContextCompat.getMainExecutor(requireContext()))
     }
 
-    private fun processImage(imageProxy: ImageProxy) {
-        val mediaImage = imageProxy.image
-        if (mediaImage != null) {
-            val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
+    private fun bindCameraUseCases() {
+        val cameraProvider = this.cameraProvider ?: return
 
-            lifecycleScope.launch {
-                val detectedText = viewModel.recognizeText(image)
-                if (!detectedText.isNullOrEmpty()) {
-                    val sourceLanguage = (spinnerSourceLanguage.selectedItem as? LanguageSpinnerItem)?.language?.languageCode ?: "en"
-                    val targetLanguage = (spinnerTargetLanguage.selectedItem as? LanguageSpinnerItem)?.language?.languageCode ?: "vi"
+        val preview = Preview.Builder()
+            .build()
+            .also {
+                it.setSurfaceProvider(previewView.surfaceProvider)
+            }
 
-                    viewModel.translateDetectedText(detectedText, sourceLanguage, targetLanguage)
+        imageCapture = ImageCapture.Builder()
+            .setFlashMode(flashMode)
+            .build()
+
+        imageAnalyzer = ImageAnalysis.Builder()
+            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+            .build()
+            .also {
+                it.setAnalyzer(cameraExecutor) { imageProxy ->
+                    processImageSafely(imageProxy)
                 }
             }
+
+        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+        try {
+            // Unbind use cases before rebinding
+            cameraProvider.unbindAll()
+
+            // Bind use cases to camera
+            camera = cameraProvider.bindToLifecycle(
+                this, cameraSelector, preview, imageCapture, imageAnalyzer
+            )
+
+        } catch (exc: Exception) {
+            Log.e(TAG, "Use case binding failed", exc)
+            showError("Camera binding failed")
         }
-        imageProxy.close()
     }
 
-    private fun captureImage() {
-        // For now, just trigger text recognition on current frame
-        Toast.makeText(requireContext(), "Analyzing current frame...", Toast.LENGTH_SHORT).show()
+    @androidx.annotation.OptIn(androidx.camera.core.ExperimentalGetImage::class)
+    private fun processImageSafely(imageProxy: ImageProxy) {
+        val currentTime = System.currentTimeMillis()
+
+        // Throttle processing to avoid overwhelming the system
+        if (currentTime - lastProcessTime < PROCESSING_INTERVAL) {
+            imageProxy.close()
+            return
+        }
+
+        lastProcessTime = currentTime
+
+        // Cancel previous processing job
+        processingJob?.cancel()
+
+        try {
+            // Use the experimental @OptIn annotation to access image
+            val mediaImage = imageProxy.image
+            if (mediaImage != null) {
+                val image = InputImage.fromMediaImage(
+                    mediaImage,
+                    imageProxy.imageInfo.rotationDegrees
+                )
+
+                processingJob = lifecycleScope.launch {
+                    try {
+                        val detectedText = viewModel.recognizeText(image)
+                        if (!detectedText.isNullOrEmpty()) {
+                            val sourceLanguage = getSelectedSourceLanguageCode()
+                            val targetLanguage = getSelectedTargetLanguageCode()
+
+                            viewModel.translateDetectedText(detectedText, sourceLanguage, targetLanguage)
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Image processing failed", e)
+                    } finally {
+                        imageProxy.close()
+                    }
+                }
+            } else {
+                Log.w(TAG, "MediaImage is null")
+                imageProxy.close()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error processing image", e)
+            imageProxy.close()
+        }
+    }
+
+    private fun captureCurrentFrame() {
+        Toast.makeText(requireContext(), getString(R.string.analyzing_frame), Toast.LENGTH_SHORT).show()
+        // The current frame will be processed by the ongoing image analysis
+    }
+
+    private fun swapLanguages() {
+        val sourcePosition = spinnerSourceLanguage.selectedItemPosition
+        val targetPosition = spinnerTargetLanguage.selectedItemPosition
+
+        spinnerSourceLanguage.setSelection(targetPosition)
+        spinnerTargetLanguage.setSelection(sourcePosition)
+    }
+
+    private fun toggleFlash() {
+        flashMode = if (flashMode == ImageCapture.FLASH_MODE_OFF) {
+            ImageCapture.FLASH_MODE_ON
+        } else {
+            ImageCapture.FLASH_MODE_OFF
+        }
+
+        // Update flash icon
+        val flashIcon = if (flashMode == ImageCapture.FLASH_MODE_ON) {
+            android.R.drawable.ic_menu_day
+        } else {
+            android.R.drawable.ic_menu_day
+        }
+        btnFlash.setImageResource(flashIcon)
+
+        // Rebuild camera with new flash setting
+        bindCameraUseCases()
+    }
+
+    private fun getSelectedSourceLanguageCode(): String {
+        return try {
+            (spinnerSourceLanguage.selectedItem as? LanguageSpinnerItem)?.language?.languageCode ?: "en"
+        } catch (e: Exception) {
+            "en"
+        }
+    }
+
+    private fun getSelectedTargetLanguageCode(): String {
+        return try {
+            (spinnerTargetLanguage.selectedItem as? LanguageSpinnerItem)?.language?.languageCode ?: "vi"
+        } catch (e: Exception) {
+            "vi"
+        }
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
@@ -214,25 +319,57 @@ class CameraFragment : Fragment() {
         )
     }
 
+    private fun showError(message: String) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    }
+
     override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<String>, grantResults: IntArray
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == CAMERA_PERMISSION_CODE) {
             if (allPermissionsGranted()) {
                 startCamera()
             } else {
-                Toast.makeText(requireContext(), "Camera permission required", Toast.LENGTH_SHORT).show()
+                showError(getString(R.string.camera_permission_required))
             }
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        cameraExecutor.shutdown()
+    override fun onResume() {
+        super.onResume()
+        if (allPermissionsGranted() && cameraProvider == null) {
+            startCamera()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Cancel any ongoing processing
+        processingJob?.cancel()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        // Clean up camera resources
+        cameraProvider?.unbindAll()
+        camera = null
+        cameraProvider = null
+
+        // Cancel processing job
+        processingJob?.cancel()
+
+        // Shutdown executor
+        if (::cameraExecutor.isInitialized) {
+            cameraExecutor.shutdown()
+        }
     }
 
     companion object {
+        private const val TAG = "CameraFragment"
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
     }
 }
