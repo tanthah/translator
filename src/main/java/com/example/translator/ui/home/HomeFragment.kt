@@ -12,7 +12,8 @@ import com.google.android.material.card.MaterialCardView
 import com.example.translator.R
 import com.example.translator.TranslatorApplication
 import com.example.translator.ui.MainActivity
-import com.example.translator.ui.image.ImageTranslationBaseActivity
+import com.example.translator.ui.camera.CameraActivity
+import com.example.translator.ui.image.ImageTranslationActivity
 import com.example.translator.ui.settings.SettingsActivity
 import kotlinx.coroutines.launch
 
@@ -43,12 +44,10 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupClickListeners(view: View) {
-        // Camera Translation Card - Now redirects to ImageTranslationActivity with camera intent
+        // Camera Translation Card
         view.findViewById<MaterialCardView>(R.id.card_camera_translation)?.setOnClickListener {
             try {
-                val intent = Intent(requireContext(), ImageTranslationBaseActivity::class.java)
-                intent.putExtra("start_camera", true)
-                startActivity(intent)
+                startActivity(Intent(requireContext(), CameraActivity::class.java))
             } catch (e: Exception) {
                 // Handle activity not found or other errors
                 e.printStackTrace()
@@ -67,7 +66,7 @@ class HomeFragment : Fragment() {
         // Image Translation Card
         view.findViewById<MaterialCardView>(R.id.card_image_translation)?.setOnClickListener {
             try {
-                startActivity(Intent(requireContext(), ImageTranslationBaseActivity::class.java))
+                startActivity(Intent(requireContext(), ImageTranslationActivity::class.java))
             } catch (e: Exception) {
                 e.printStackTrace()
             }

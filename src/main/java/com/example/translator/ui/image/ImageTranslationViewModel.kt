@@ -35,12 +35,6 @@ class ImageTranslationViewModel(
     private val _detectedText = MutableLiveData<String?>()
     val detectedText: LiveData<String?> = _detectedText
 
-    private val _detectedLanguage = MutableLiveData<String?>()
-    val detectedLanguage: LiveData<String?> = _detectedLanguage
-
-    private val _detectedLanguageName = MutableLiveData<String?>()
-    val detectedLanguageName: LiveData<String?> = _detectedLanguageName
-
     private val _translationResult = MutableLiveData<String?>()
     val translationResult: LiveData<String?> = _translationResult
 
@@ -49,9 +43,6 @@ class ImageTranslationViewModel(
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
-
-    private val _isDetectingLanguage = MutableLiveData<Boolean>()
-    val isDetectingLanguage: LiveData<Boolean> = _isDetectingLanguage
 
     private val _isSummarizing = MutableLiveData<Boolean>()
     val isSummarizing: LiveData<Boolean> = _isSummarizing
@@ -65,7 +56,6 @@ class ImageTranslationViewModel(
     // Job management
     private var processingJob: Job? = null
     private var summarizationJob: Job? = null
-    private var languageDetectionJob: Job? = null
 
     // Speech settings
     private var currentSpeechRate = SpeechService.SPEED_NORMAL
@@ -101,8 +91,8 @@ class ImageTranslationViewModel(
                     return@launch
                 }
 
-                if (targetLanguage.isEmpty()) {
-                    _errorMessage.value = "Please select target language."
+                if (sourceLanguage.isEmpty() || targetLanguage.isEmpty()) {
+                    _errorMessage.value = "Please select source and target languages."
                     return@launch
                 }
 
@@ -120,46 +110,13 @@ class ImageTranslationViewModel(
                 Log.d(TAG, "Text recognized: ${recognizedText.length} characters")
                 _detectedText.value = recognizedText
 
-                // Step 3: Auto-detect language if sourceLanguage is "auto" or empty
-                var actualSourceLanguage = sourceLanguage
-                if (sourceLanguage == "auto" || sourceLanguage.isEmpty()) {
-                    Log.d(TAG, "Auto-detecting language...")
-                    _isDetectingLanguage.value = true
-
-                    try {
-                        val detectedLang = translationService.detectLanguage(recognizedText)
-                        if (!detectedLang.isNullOrEmpty() && detectedLang != "und") {
-                            actualSourceLanguage = detectedLang
-                            _detectedLanguage.value = detectedLang
-
-                            // Get language name for display
-                            val language = languageRepository.getLanguageByCode(detectedLang)
-                            _detectedLanguageName.value = language?.languageName ?: detectedLang
-
-                            Log.d(TAG, "Language detected: $detectedLang (${language?.languageName})")
-                        } else {
-                            Log.w(TAG, "Could not detect language, using English as default")
-                            actualSourceLanguage = "en"
-                            _detectedLanguage.value = "en"
-                            _detectedLanguageName.value = "English (Auto-detected)"
-                        }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Language detection failed", e)
-                        actualSourceLanguage = "en"
-                        _detectedLanguage.value = "en"
-                        _detectedLanguageName.value = "English (Default)"
-                    } finally {
-                        _isDetectingLanguage.value = false
-                    }
-                }
-
-                // Step 4: Translate the recognized text if languages are different
-                if (actualSourceLanguage == targetLanguage) {
+                // Step 3: Translate the recognized text if languages are different
+                if (sourceLanguage == targetLanguage) {
                     Log.d(TAG, "Source and target languages are the same, skipping translation")
                     _translationResult.value = recognizedText
                 } else {
-                    Log.d(TAG, "Translating text from $actualSourceLanguage to $targetLanguage...")
-                    val translatedText = translationService.translateText(recognizedText, actualSourceLanguage, targetLanguage)
+                    Log.d(TAG, "Translating text from $sourceLanguage to $targetLanguage...")
+                    val translatedText = translationService.translateText(recognizedText, sourceLanguage, targetLanguage)
 
                     if (translatedText.isNullOrEmpty()) {
                         Log.w(TAG, "Translation failed or returned empty result")
@@ -182,52 +139,6 @@ class ImageTranslationViewModel(
                 _errorMessage.value = "An unexpected error occurred: ${e.message ?: "Unknown error"}"
             } finally {
                 _isLoading.value = false
-            }
-        }
-    }
-
-    // New method for processing with auto-detect
-    suspend fun processImageWithAutoDetect(bitmap: Bitmap, targetLanguage: String) {
-        processImage(bitmap, "auto", targetLanguage)
-    }
-
-    fun detectLanguageFromText(text: String) {
-        languageDetectionJob?.cancel()
-
-        languageDetectionJob = viewModelScope.launch {
-            try {
-                _isDetectingLanguage.value = true
-                _errorMessage.value = null
-
-                if (text.trim().isEmpty()) {
-                    _errorMessage.value = "No text available for language detection"
-                    return@launch
-                }
-
-                Log.d(TAG, "Detecting language for text...")
-                val detectedLang = translationService.detectLanguage(text)
-
-                if (!detectedLang.isNullOrEmpty() && detectedLang != "und") {
-                    _detectedLanguage.value = detectedLang
-
-                    // Get language name for display
-                    val language = languageRepository.getLanguageByCode(detectedLang)
-                    _detectedLanguageName.value = language?.languageName ?: detectedLang
-
-                    Log.d(TAG, "Language detected: $detectedLang (${language?.languageName})")
-                } else {
-                    _detectedLanguage.value = null
-                    _detectedLanguageName.value = null
-                    _errorMessage.value = "Could not detect language. Please select manually."
-                }
-
-            } catch (e: Exception) {
-                Log.e(TAG, "Language detection failed", e)
-                _errorMessage.value = "Language detection failed: ${e.message}"
-                _detectedLanguage.value = null
-                _detectedLanguageName.value = null
-            } finally {
-                _isDetectingLanguage.value = false
             }
         }
     }
@@ -353,8 +264,6 @@ class ImageTranslationViewModel(
 
     fun clearResults() {
         _detectedText.value = null
-        _detectedLanguage.value = null
-        _detectedLanguageName.value = null
         _translationResult.value = null
         _summaryResult.value = null
         _errorMessage.value = null
@@ -372,7 +281,6 @@ class ImageTranslationViewModel(
         // Cancel ongoing processing
         processingJob?.cancel()
         summarizationJob?.cancel()
-        languageDetectionJob?.cancel()
 
         // Close services
         try {

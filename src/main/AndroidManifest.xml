@@ -47,10 +47,16 @@
             </intent-filter>
         </activity>
 
-        <!-- Enhanced Image Translation Activity (replaces both Camera and Image activities) -->
+        <!-- Camera Activity -->
         <activity
-            android:name=".ui.image.ImageTranslationBaseActivity"
+            android:name=".ui.camera.CameraActivity"
             android:screenOrientation="portrait"
+            android:theme="@style/Theme.Translator.NoActionBar"
+            android:exported="false" />
+
+        <!-- Image Translation Activity -->
+        <activity
+            android:name=".ui.image.ImageTranslationActivity"
             android:theme="@style/Theme.Translator"
             android:exported="false" />
 

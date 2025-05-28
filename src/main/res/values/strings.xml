@@ -21,15 +21,6 @@
     <string name="translating">Translating...</string>
     <string name="analyzing_frame">Analyzing current frame...</string>
 
-    <!-- Language Detection -->
-    <string name="auto_detect_language">Auto-detect Language</string>
-    <string name="detecting_language">Detecting language...</string>
-    <string name="language_detected">Language detected: %s</string>
-    <string name="auto_detect">Auto-detect</string>
-    <string name="language_detection_failed">Could not detect language. Please select manually.</string>
-    <string name="no_text_for_detection">No text available for language detection</string>
-    <string name="text_too_short_for_detection">Text too short for reliable language detection</string>
-
     <!-- Buttons -->
     <string name="voice_input">Voice Input</string>
     <string name="speak">Speak</string>
@@ -68,7 +59,7 @@
     <string name="target_language">Target Language</string>
     <string name="theme">Theme</string>
     <string name="font_size">Font Size</string>
-    <string name="auto_detect_language_setting">Auto-detect Language</string>
+    <string name="auto_detect_language">Auto-detect Language</string>
     <string name="text_to_speech">Text-to-Speech</string>
     <string name="camera_auto_translate">Camera Auto-translate</string>
     <string name="save_settings">Save Settings</string>
@@ -91,8 +82,6 @@
     <string name="no_translated_text_to_speak">No translated text to speak</string>
     <string name="no_summary_to_speak">No summary to speak</string>
     <string name="failed_to_speak_text">Failed to speak text</string>
-    <string name="unsupported_language_pair">Unsupported language pair. Please try different languages.</string>
-    <string name="translation_quota_exceeded">Translation service temporarily unavailable. Please try again later.</string>
 
     <!-- Success Messages -->
     <string name="text_copied">Text copied to clipboard</string>
@@ -109,13 +98,15 @@
     <string name="speak_summary_description">Read summary aloud</string>
     <string name="summarize_description">Create text summary</string>
     <string name="speech_settings_description">Adjust speech settings</string>
-    <string name="auto_detect_description">Automatically detect source language</string>
+
+    <!-- Language Detection -->
+    <string name="language_detected">Language detected: %s</string>
+    <string name="auto_detect">Auto-detect</string>
 
     <!-- Camera -->
     <string name="camera_error">Camera error occurred</string>
     <string name="camera_not_available">Camera not available</string>
     <string name="image_processing">Processing image...</string>
-    <string name="image_enhancing">Enhancing image quality...</string>
 
     <!-- Voice -->
     <string name="tts_not_available">Text-to-speech not available</string>
@@ -124,7 +115,6 @@
     <!-- File operations -->
     <string name="image_load_failed">Failed to load image</string>
     <string name="image_too_large">Image too large. Please select a smaller image.</string>
-    <string name="image_enhancement_failed">Failed to enhance image quality</string>
 
     <!-- Camera specific labels -->
     <string name="detected_text_label">Detected Text:</string>
@@ -142,26 +132,6 @@
 
     <!-- Tips and Instructions -->
     <string name="speech_tip">💡 Tip: Slower speeds are better for learning pronunciation</string>
-    <string name="crop_instructions">• Pinch to zoom in/out for better text visibility\n• Drag to move image\n• Drag corners to select text area\n• Tap confirm when ready\n• Use auto-detect for unknown languages</string>
+    <string name="crop_instructions">• Pinch to zoom in/out\n• Drag to move image\n• Drag corners to select text area\n• Tap confirm when ready</string>
     <string name="area_selected">Area selected. Tap translate to process.</string>
-    <string name="image_quality_tip">💡 Tip: Better lighting and higher resolution images improve text recognition</string>
-    <string name="auto_detect_tip">💡 Tip: Auto-detect works best with at least 10 characters of text</string>
-
-    <!-- Image Translation Specific -->
-    <string name="enhanced_image_translation">Enhanced Image Translation</string>
-    <string name="supports_multiple_languages">Supports 50+ languages with auto-detection</string>
-    <string name="high_quality_ocr">High-quality text recognition</string>
-    <string name="improved_camera_quality">Improved camera image processing</string>
-    <string name="select_text_area">Select text area for better accuracy</string>
-    <string name="processing_with_enhancement">Processing with image enhancement...</string>
-
-    <!-- Language Support Messages -->
-    <string name="language_support_expanded">Now supporting 50+ languages for image translation</string>
-    <string name="better_language_detection">Improved language detection accuracy</string>
-    <string name="multiple_language_support">Supports major world languages including Asian scripts</string>
-
-    <!-- Quality Improvements -->
-    <string name="image_quality_enhanced">Image quality enhanced for better recognition</string>
-    <string name="ocr_accuracy_improved">Text recognition accuracy improved</string>
-    <string name="better_camera_processing">Enhanced camera image processing</string>
 </resources>
