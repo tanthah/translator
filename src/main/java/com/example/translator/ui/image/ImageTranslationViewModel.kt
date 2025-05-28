@@ -13,6 +13,8 @@ import com.example.translator.data.repository.LanguageRepository
 import com.example.translator.data.repository.UserRepository
 import com.example.translator.services.TextRecognitionService
 import com.example.translator.services.TranslationService
+import com.example.translator.services.TextSummarizationService
+import com.example.translator.services.SpeechService
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -24,6 +26,8 @@ class ImageTranslationViewModel(
 
     private val textRecognitionService = TextRecognitionService()
     private val translationService = TranslationService(context)
+    private val summarizationService = TextSummarizationService(context)
+    private val speechService = SpeechService(context)
 
     val supportedLanguages = languageRepository.getAllSupportedLanguages().asLiveData()
     val userPreferences = userRepository.getUserPreferences().asLiveData()
@@ -34,17 +38,40 @@ class ImageTranslationViewModel(
     private val _translationResult = MutableLiveData<String?>()
     val translationResult: LiveData<String?> = _translationResult
 
+    private val _summaryResult = MutableLiveData<String?>()
+    val summaryResult: LiveData<String?> = _summaryResult
+
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
+
+    private val _isSummarizing = MutableLiveData<Boolean>()
+    val isSummarizing: LiveData<Boolean> = _isSummarizing
 
     private val _errorMessage = MutableLiveData<String?>()
     val errorMessage: LiveData<String?> = _errorMessage
 
+    private val _speechRate = MutableLiveData<Float>()
+    val speechRate: LiveData<Float> = _speechRate
+
     // Job management
     private var processingJob: Job? = null
+    private var summarizationJob: Job? = null
+
+    // Speech settings
+    private var currentSpeechRate = SpeechService.SPEED_NORMAL
 
     companion object {
         private const val TAG = "ImageTranslationViewModel"
+    }
+
+    init {
+        // Initialize speech service
+        speechService.initializeTextToSpeech { success ->
+            if (!success) {
+                _errorMessage.value = "Text-to-speech not available"
+            }
+        }
+        _speechRate.value = currentSpeechRate
     }
 
     suspend fun processImage(bitmap: Bitmap, sourceLanguage: String, targetLanguage: String) {
@@ -116,6 +143,116 @@ class ImageTranslationViewModel(
         }
     }
 
+    fun summarizeDetectedText(
+        summaryType: TextSummarizationService.SummaryType = TextSummarizationService.SummaryType.BRIEF,
+        targetLanguage: String = "en"
+    ) {
+        val textToSummarize = _detectedText.value
+
+        if (textToSummarize.isNullOrEmpty()) {
+            _errorMessage.value = "No text available to summarize"
+            return
+        }
+
+        summarizationJob?.cancel()
+        summarizationJob = viewModelScope.launch {
+            try {
+                _isSummarizing.value = true
+                _errorMessage.value = null
+
+                Log.d(TAG, "Summarizing text...")
+                val result = summarizationService.summarizeText(textToSummarize, summaryType, targetLanguage)
+
+                when (result) {
+                    is TextSummarizationService.SummaryResult.Success -> {
+                        _summaryResult.value = result.summary
+                        Log.d(TAG, "Summarization successful")
+                    }
+                    is TextSummarizationService.SummaryResult.Error -> {
+                        _errorMessage.value = result.message
+                        Log.e(TAG, "Summarization failed: ${result.message}")
+                    }
+                    else -> {
+                        _errorMessage.value = "Unknown summarization result"
+                        Log.e(TAG, "Unknown summarization result type")
+                    }
+                }
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Error during summarization", e)
+                _errorMessage.value = "Summarization failed: ${e.message}"
+            } finally {
+                _isSummarizing.value = false
+            }
+        }
+    }
+
+    fun speakDetectedText(languageCode: String) {
+        val text = _detectedText.value
+        if (text.isNullOrEmpty()) {
+            _errorMessage.value = "No detected text to speak"
+            return
+        }
+
+        try {
+            speechService.speakText(text, languageCode, currentSpeechRate)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error speaking detected text", e)
+            _errorMessage.value = "Failed to speak text"
+        }
+    }
+
+    fun speakTranslatedText(languageCode: String) {
+        val text = _translationResult.value
+        if (text.isNullOrEmpty()) {
+            _errorMessage.value = "No translated text to speak"
+            return
+        }
+
+        try {
+            speechService.speakText(text, languageCode, currentSpeechRate)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error speaking translated text", e)
+            _errorMessage.value = "Failed to speak translation"
+        }
+    }
+
+    fun speakSummary(languageCode: String) {
+        val text = _summaryResult.value
+        if (text.isNullOrEmpty()) {
+            _errorMessage.value = "No summary to speak"
+            return
+        }
+
+        try {
+            speechService.speakText(text, languageCode, currentSpeechRate)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error speaking summary", e)
+            _errorMessage.value = "Failed to speak summary"
+        }
+    }
+
+    fun setSpeechRate(rate: Float) {
+        currentSpeechRate = rate.coerceIn(SpeechService.SPEED_VERY_SLOW, SpeechService.SPEED_VERY_FAST)
+        speechService.setSpeechRate(currentSpeechRate)
+        _speechRate.value = currentSpeechRate
+    }
+
+    fun stopSpeaking() {
+        speechService.stopSpeaking()
+    }
+
+    fun getSpeechRateText(rate: Float): String {
+        return when {
+            rate <= SpeechService.SPEED_VERY_SLOW -> "Very Slow"
+            rate <= SpeechService.SPEED_SLOW -> "Slow"
+            rate <= SpeechService.SPEED_NORMAL -> "Normal"
+            rate <= SpeechService.SPEED_FAST -> "Fast"
+            rate <= SpeechService.SPEED_VERY_FAST -> "Very Fast"
+            else -> "Custom"
+        }
+    }
+
     private fun isValidBitmap(bitmap: Bitmap?): Boolean {
         return bitmap != null &&
                 !bitmap.isRecycled &&
@@ -128,6 +265,7 @@ class ImageTranslationViewModel(
     fun clearResults() {
         _detectedText.value = null
         _translationResult.value = null
+        _summaryResult.value = null
         _errorMessage.value = null
     }
 
@@ -142,11 +280,14 @@ class ImageTranslationViewModel(
 
         // Cancel ongoing processing
         processingJob?.cancel()
+        summarizationJob?.cancel()
 
         // Close services
         try {
             textRecognitionService.close()
             translationService.closeTranslators()
+            summarizationService.close()
+            speechService.release()
         } catch (e: Exception) {
             Log.e(TAG, "Error closing services", e)
         }

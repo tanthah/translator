@@ -22,10 +22,21 @@ class SpeechService(private val context: Context) {
     private var isSpeaking = false
     private var isListening = false
 
+    // Speech rate settings
+    private var speechRate = 1.0f // Normal speed
+    private var speechPitch = 1.0f // Normal pitch
+
     companion object {
         private const val TAG = "SpeechService"
         private const val MAX_TEXT_LENGTH = 4000
         private const val TTS_UTTERANCE_ID = "TTS_UTTERANCE"
+
+        // Speed constants
+        const val SPEED_VERY_SLOW = 0.5f
+        const val SPEED_SLOW = 0.75f
+        const val SPEED_NORMAL = 1.0f
+        const val SPEED_FAST = 1.25f
+        const val SPEED_VERY_FAST = 1.5f
     }
 
     fun initializeTextToSpeech(onInitComplete: (Boolean) -> Unit) {
@@ -39,6 +50,9 @@ class SpeechService(private val context: Context) {
 
                 if (isInitialized) {
                     setupTTSListener()
+                    // Set default speech rate and pitch
+                    textToSpeech?.setSpeechRate(speechRate)
+                    textToSpeech?.setPitch(speechPitch)
                     Log.d(TAG, "TextToSpeech initialized successfully")
                 } else {
                     Log.e(TAG, "TextToSpeech initialization failed with status: $status")
@@ -71,7 +85,21 @@ class SpeechService(private val context: Context) {
         })
     }
 
-    fun speakText(text: String, languageCode: String) {
+    fun setSpeechRate(rate: Float) {
+        speechRate = rate.coerceIn(0.1f, 3.0f)
+        textToSpeech?.setSpeechRate(speechRate)
+    }
+
+    fun setSpeechPitch(pitch: Float) {
+        speechPitch = pitch.coerceIn(0.1f, 2.0f)
+        textToSpeech?.setPitch(speechPitch)
+    }
+
+    fun getSpeechRate(): Float = speechRate
+
+    fun getSpeechPitch(): Float = speechPitch
+
+    fun speakText(text: String, languageCode: String, rate: Float = speechRate) {
         if (!isInitialized) {
             Log.w(TAG, "TextToSpeech not initialized")
             return
@@ -99,6 +127,9 @@ class SpeechService(private val context: Context) {
 
             // Stop any ongoing speech
             stopSpeaking()
+
+            // Set speech rate for this utterance
+            textToSpeech?.setSpeechRate(rate)
 
             val params = Bundle().apply {
                 putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, TTS_UTTERANCE_ID)

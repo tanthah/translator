@@ -30,6 +30,27 @@
     <string name="gallery">Gallery</string>
     <string name="camera">Camera</string>
     <string name="listening">Listening...</string>
+    <string name="read">Read</string>
+    <string name="summarize">Summarize</string>
+    <string name="speech_settings">Speech Settings</string>
+
+    <!-- Summarization -->
+    <string name="summary_brief">Brief Summary</string>
+    <string name="summary_detailed">Detailed Summary</string>
+    <string name="summary_bullet_points">Key Points</string>
+    <string name="summary_key_phrases">Key Phrases</string>
+    <string name="summarizing">Summarizing...</string>
+    <string name="summary_failed">Failed to create summary</string>
+    <string name="no_text_to_summarize">No text available to summarize</string>
+
+    <!-- Speech Settings -->
+    <string name="speech_speed">Speech Speed</string>
+    <string name="speed_very_slow">Very Slow</string>
+    <string name="speed_slow">Slow</string>
+    <string name="speed_normal">Normal</string>
+    <string name="speed_fast">Fast</string>
+    <string name="speed_very_fast">Very Fast</string>
+    <string name="speech_speed_updated">Speech speed updated</string>
 
     <!-- Settings -->
     <string name="settings">Settings</string>
@@ -57,6 +78,10 @@
     <string name="generic_error">An error occurred. Please try again.</string>
     <string name="network_timeout">Request timed out. Please try again.</string>
     <string name="model_download_failed">Failed to download translation model</string>
+    <string name="no_detected_text_to_speak">No detected text to speak</string>
+    <string name="no_translated_text_to_speak">No translated text to speak</string>
+    <string name="no_summary_to_speak">No summary to speak</string>
+    <string name="failed_to_speak_text">Failed to speak text</string>
 
     <!-- Success Messages -->
     <string name="text_copied">Text copied to clipboard</string>
@@ -69,6 +94,10 @@
     <string name="copy_translation_description">Copy translated text</string>
     <string name="camera_capture_description">Capture image for translation</string>
     <string name="flash_toggle_description">Toggle camera flash</string>
+    <string name="speak_detected_description">Read detected text aloud</string>
+    <string name="speak_summary_description">Read summary aloud</string>
+    <string name="summarize_description">Create text summary</string>
+    <string name="speech_settings_description">Adjust speech settings</string>
 
     <!-- Language Detection -->
     <string name="language_detected">Language detected: %s</string>
@@ -90,4 +119,19 @@
     <!-- Camera specific labels -->
     <string name="detected_text_label">Detected Text:</string>
     <string name="translation_label">Translation:</string>
+    <string name="summary_label">Summary:</string>
+
+    <!-- Dialog Messages -->
+    <string name="choose_summary_type">Choose Summary Type</string>
+    <string name="summary_type_brief">Brief Summary (1-2 sentences)</string>
+    <string name="summary_type_detailed">Detailed Summary (3-5 sentences)</string>
+    <string name="summary_type_bullet">Key Points (Bullet format)</string>
+    <string name="summary_type_phrases">Key Phrases</string>
+    <string name="cancel">Cancel</string>
+    <string name="apply">Apply</string>
+
+    <!-- Tips and Instructions -->
+    <string name="speech_tip">💡 Tip: Slower speeds are better for learning pronunciation</string>
+    <string name="crop_instructions">• Pinch to zoom in/out\n• Drag to move image\n• Drag corners to select text area\n• Tap confirm when ready</string>
+    <string name="area_selected">Area selected. Tap translate to process.</string>
 </resources>
