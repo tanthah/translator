@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.example.translator.R
-import com.example.translator.ui.camera.CameraFragment
 import com.example.translator.ui.home.HomeFragment
 import com.example.translator.ui.text.TextTranslationFragment
 
@@ -36,10 +35,6 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.nav_home -> {
                     loadFragment(HomeFragment(), R.id.nav_home)
-                    true
-                }
-                R.id.nav_camera -> {
-                    loadFragment(CameraFragment(), R.id.nav_camera)
                     true
                 }
                 R.id.nav_text -> {
